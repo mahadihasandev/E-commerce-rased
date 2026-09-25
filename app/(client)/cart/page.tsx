@@ -21,7 +21,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Address } from "@/types";
-import { getAddresses } from "@/lib/api";
+import { useAddresses } from "@/hooks/useQueries";
 import { urlFor } from "@/lib/image";
 import useStore from "@/store";
 import useAuth from "@/hooks/useAuth";
@@ -45,33 +45,19 @@ const CartPage = () => {
   const [mounted, setMounted] = useState(false);
   const groupedItems = useStore((state) => state.getGroupedItem());
   const { isSignedIn, user } = useAuth();
-  const [addresses, setAddresses] = useState<Address[] | null>(null);
+  const { data: addresses = [] } = useAddresses();
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  const fetchAddress = async () => {
-    setLoading(true);
-    try {
-      const data = await getAddresses();
-      setAddresses(data);
-      const defaultAddress = data.find((addr: Address) => addr.default);
-      if (defaultAddress) {
-        setSelectedAddress(defaultAddress);
-      } else if (data.length > 0) {
-        setSelectedAddress(data[0]);
-      }
-    } catch (error) {
-      toast.error(`Failed to fetch address ${error}`);
-    } finally {
-      setLoading(false);
-    }
-  };
   useEffect(() => {
-    fetchAddress();
-  }, []);
+    if (addresses.length > 0 && !selectedAddress) {
+      const defaultAddress = addresses.find((addr: Address) => addr.default);
+      setSelectedAddress(defaultAddress || addresses[0]);
+    }
+  }, [addresses, selectedAddress]);
 
   const handleResetCart = () => {
     const confirm = window.confirm("Are you sure you want to reset your cart?");
@@ -276,7 +262,7 @@ const CartPage = () => {
                       </div>
                     </div>
 
-                    {addresses && (
+                    {addresses.length > 0 && (
                       <div
                         className="border border-shop_light_blue/20 bg-shop_light_bg rounded-lg shadow-md 
                   shadow-shop_light_blue/30 my-3"

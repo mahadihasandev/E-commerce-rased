@@ -1,34 +1,19 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import HomeTabBar from "./HomeTabBar";
 import { productType } from "@/constant/data";
-import { getProducts } from "@/lib/api";
+import { useProducts } from "@/hooks/useQueries";
 import { AnimatePresence, motion } from "motion/react";
 import { TbLoader3 } from "react-icons/tb";
 import NoProductAvailable from "./NoProductAvailable";
 import ProductCard from "./ProductCard";
-import { Product } from "@/types";
 
 const ProductGrid = () => {
-  const [product, setProduct] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(false);
   const [selectedTab, setSelectedTab] = useState(productType[0].title || "");
-
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const response = await getProducts({ variant: selectedTab.toLowerCase() });
-        setProduct(response);
-      } catch (error) {
-        console.error("fetchData error:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, [selectedTab]);
+  const { data: product = [], isLoading: loading } = useProducts({
+    variant: selectedTab.toLowerCase(),
+  });
 
   return (
     <div>

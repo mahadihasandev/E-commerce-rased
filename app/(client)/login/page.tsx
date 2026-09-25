@@ -7,6 +7,7 @@ import Container from "@/components/Container";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import useAuth from "@/hooks/useAuth";
+import { useLoginMutation } from "@/hooks/useQueries";
 import toast from "react-hot-toast";
 import { LogIn, Lock, Mail, ArrowRight, Eye, EyeOff } from "lucide-react";
 
@@ -16,7 +17,8 @@ const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const loginMutation = useLoginMutation();
+  const loading = loginMutation.isPending;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,44 +27,29 @@ const LoginPage = () => {
       return;
     }
 
-    setLoading(true);
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000/api";
-      const response = await fetch(`${apiUrl}/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok && (data.user || data.data?.user || data.token)) {
+      const data = await loginMutation.mutateAsync({ email, password });
+      if (data.user || data.data?.user || data.token) {
         const user = data.user || data.data?.user || { id: "1", name: email.split("@")[0], email };
         const token = data.token || data.data?.token || "mock-token";
         login(user, token);
         toast.success("Logged in successfully!");
         router.push("/");
       } else {
-        // Fallback for development if Laravel backend is not running yet
-        if (!response.ok && data.message) {
-          toast.error(data.message);
-        } else {
-          // Allow client preview login
-          login({ id: "1", name: email.split("@")[0], email }, "dev-token");
-          toast.success("Logged in (Demo mode)");
-          router.push("/");
-        }
+        login({ id: "1", name: email.split("@")[0], email }, "dev-token");
+        toast.success("Logged in (Demo mode)");
+        router.push("/");
       }
-    } catch {
-      // Offline fallback: log in locally for quick frontend testing
-      login({ id: "1", name: email.split("@")[0], email }, "dev-token");
-      toast.success("Logged in (Demo mode)");
-      router.push("/");
-    } finally {
-      setLoading(false);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "";
+      if (errorMessage && !errorMessage.includes("Failed to fetch")) {
+        toast.error(errorMessage);
+      } else {
+        // Fallback for demo preview
+        login({ id: "1", name: email.split("@")[0], email }, "dev-token");
+        toast.success("Logged in (Demo mode)");
+        router.push("/");
+      }
     }
   };
 

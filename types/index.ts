@@ -93,6 +93,7 @@ export interface Product {
   status?: "new" | "hot" | "sale";
   variant?: "gadget" | "appliances" | "refrigerators" | "others" | string;
   isFeatured?: boolean;
+  sales_count?: number;
 }
 
 export interface Banner {

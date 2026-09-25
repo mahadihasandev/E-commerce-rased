@@ -2,8 +2,8 @@
 
 import { Category, Product } from "@/types";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { getProducts } from "@/lib/api";
+import { useState } from "react";
+import { useProducts } from "@/hooks/useQueries";
 import { AnimatePresence, motion } from "motion/react";
 import ProductCard from "./ProductCard";
 import NoProductAvailable from "./NoProductAvailable";
@@ -23,32 +23,17 @@ interface Props {
 
 const CategoryProduct = ({ categories, slugs }: Props) => {
   const [currentSlug, setCurrentSlug] = useState(slugs);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const fetchProducts = async (categorySlug: string) => {
-    try {
-      setLoading(true);
-      const response = await getProducts({ category: categorySlug });
-      setProducts(response);
-    } catch (error) {
-      console.error(error, "Error Fetching Products");
-      setProducts([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { data: products = [], isLoading: loading } = useProducts({
+    category: currentSlug,
+  });
 
   const handleCategoryChange = (newSlug: string) => {
     if (newSlug === currentSlug) return;
     setCurrentSlug(newSlug);
     router.push(`/category/${newSlug}`, { scroll: false });
   };
-
-  useEffect(() => {
-    fetchProducts(currentSlug);
-  }, [currentSlug, router]);
 
   return (
     <div className="py-2 flex flex-col gap-8 items-start md:flex-row">

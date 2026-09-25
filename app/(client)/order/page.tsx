@@ -7,9 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Table, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { getOrder } from "@/lib/api";
+import { useOrders } from "@/hooks/useQueries";
 import useAuth from "@/hooks/useAuth";
-import { Order } from "@/types";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import { TbFileXFilled } from "react-icons/tb";
@@ -17,22 +16,11 @@ import { TbFileXFilled } from "react-icons/tb";
 const OrderPage = () => {
   const { user, isSignedIn } = useAuth();
   const [mounted, setMounted] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [orders, setOrders] = useState<Order[]>([]);
+  const { data: orders = [], isLoading: loading } = useOrders(user?.id);
 
   useEffect(() => {
     setMounted(true);
   }, []);
-
-  useEffect(() => {
-    if (user?.id) {
-      setLoading(true);
-      getOrder(String(user.id))
-        .then((data) => setOrders(data || []))
-        .catch((err) => console.error("Failed to load orders:", err))
-        .finally(() => setLoading(false));
-    }
-  }, [user?.id]);
 
   if (!mounted) {
     return (

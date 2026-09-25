@@ -1,5 +1,6 @@
 import { Poppins } from "next/font/google";
 import { Toaster } from "react-hot-toast";
+import QueryProvider from "@/components/QueryProvider";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -33,7 +34,7 @@ const RootLayout = ({
             },
           }}
         />
-        {children}
+        <QueryProvider>{children}</QueryProvider>
       </body>
     </html>
   );

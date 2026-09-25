@@ -377,6 +377,7 @@ export const MOCK_PRODUCTS: Product[] = [
     status: "hot",
     variant: "gadget",
     isFeatured: true,
+    sales_count: 850,
     brand: { _ref: "brand-2", brandName: "Sony", title: "Sony", slug: { current: "sony" } },
     categories: ["gadget-accessories"],
     keyfeature: "Industry-leading noise cancellation with Auto NC Optimizer, 30-hour battery life, and crystal-clear hands-free calling.",
@@ -397,6 +398,7 @@ export const MOCK_PRODUCTS: Product[] = [
     status: "new",
     variant: "gadget",
     isFeatured: true,
+    sales_count: 720,
     brand: { _ref: "brand-1", brandName: "Apple", title: "Apple", slug: { current: "apple" } },
     categories: ["smart-watches", "gadget-accessories"],
     keyfeature: "49mm corrosion-resistant aerospace titanium case, 3000 nits Always-On Retina display, up to 72 hours battery in Low Power Mode.",
@@ -417,6 +419,7 @@ export const MOCK_PRODUCTS: Product[] = [
     status: "sale",
     variant: "gadget",
     isFeatured: true,
+    sales_count: 610,
     brand: { _ref: "brand-3", brandName: "Samsung", title: "Samsung", slug: { current: "samsung" } },
     categories: ["smartphones"],
     keyfeature: "Galaxy AI features, built-in S Pen, 200MP camera with Quad Telephoto system, Corning Gorilla Armor front glass.",
@@ -437,6 +440,7 @@ export const MOCK_PRODUCTS: Product[] = [
     status: "hot",
     variant: "gadget",
     isFeatured: true,
+    sales_count: 530,
     brand: { _ref: "brand-4", brandName: "Bose", title: "Bose", slug: { current: "bose" } },
     categories: ["gadget-accessories"],
     keyfeature: "Breakthrough spatialized audio for immersive listening, world-class noise cancellation with CustomTune technology.",
@@ -457,6 +461,7 @@ export const MOCK_PRODUCTS: Product[] = [
     status: "new",
     variant: "gadget",
     isFeatured: true,
+    sales_count: 420,
     brand: { _ref: "brand-1", brandName: "Apple", title: "Apple", slug: { current: "apple" } },
     categories: ["laptops"],
     keyfeature: "16-core CPU, 40-core GPU, Liquid Retina XDR display with ProMotion 120Hz, up to 22 hours battery life.",
@@ -476,6 +481,7 @@ export const MOCK_PRODUCTS: Product[] = [
     status: "sale",
     variant: "refrigerators",
     isFeatured: true,
+    sales_count: 310,
     brand: { _ref: "brand-3", brandName: "LG", title: "LG", slug: { current: "lg" } },
     categories: ["appliances", "refrigerators"],
     keyfeature: "Knock twice to illuminate glass panel, Linear Cooling for consistent temperature, Craft Ice maker.",
@@ -495,6 +501,7 @@ export const MOCK_PRODUCTS: Product[] = [
     status: "hot",
     variant: "appliances",
     isFeatured: false,
+    sales_count: 240,
     brand: { _ref: "brand-4", brandName: "Dyson", title: "Dyson", slug: { current: "dyson" } },
     categories: ["appliances"],
     keyfeature: "Laser revelation reveals microscopic dust, Piezo sensor scientifically calculates particle counts.",
@@ -514,6 +521,7 @@ export const MOCK_PRODUCTS: Product[] = [
     status: "new",
     variant: "gadget",
     isFeatured: true,
+    sales_count: 180,
     brand: { _ref: "brand-2", brandName: "Sony", title: "Sony", slug: { current: "sony" } },
     categories: ["gaming", "gadget-accessories"],
     keyfeature: "PlayStation Spectral Super Resolution (PSSR), advanced ray tracing, 2TB high-speed NVMe SSD.",
@@ -1332,6 +1340,34 @@ export const getHotDeals = async (): Promise<Product[]> => {
   const deals = MOCK_PRODUCTS.filter((p) => p.status === "hot" || (p.discount && p.discount > 10));
   const res = await fetchAPI<Product[]>("/products/hot-deals", deals);
   return Array.isArray(res) ? res : deals;
+};
+
+export const getBestSellers = async (limit: number = 10): Promise<Product[]> => {
+  // Check if any product has sales recorded (> 0)
+  const anyHasSales = MOCK_PRODUCTS.some((p) => (p.sales_count ?? 0) > 0);
+
+  let sortedFallback: Product[];
+  if (!anyHasSales) {
+    // When no product has sales yet (all 0), show strictly in original array serial
+    sortedFallback = [...MOCK_PRODUCTS].slice(0, limit);
+  } else {
+    // Rank by number of sales desc; if sales is 0 or equal, fall back to array serial
+    sortedFallback = [...MOCK_PRODUCTS]
+      .map((p, index) => ({ p, index }))
+      .sort((a, b) => {
+        const salesA = a.p.sales_count ?? 0;
+        const salesB = b.p.sales_count ?? 0;
+        if (salesB !== salesA) {
+          return salesB - salesA;
+        }
+        return a.index - b.index; // preserves array serial
+      })
+      .map((item) => item.p)
+      .slice(0, limit);
+  }
+
+  const res = await fetchAPI<Product[]>(`/products/best-sellers?limit=${limit}`, sortedFallback);
+  return Array.isArray(res) ? res : sortedFallback;
 };
 
 export const getSingleProduct = async (slug: string): Promise<Product | null> => {

@@ -7,6 +7,7 @@ import Container from "@/components/Container";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import useAuth from "@/hooks/useAuth";
+import { useRegisterMutation } from "@/hooks/useQueries";
 import toast from "react-hot-toast";
 import { UserPlus, User, Lock, Mail, ArrowRight, Eye, EyeOff } from "lucide-react";
 
@@ -19,7 +20,8 @@ const RegisterPage = () => {
   const [passwordConfirmation, setPasswordConfirmation] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const registerMutation = useRegisterMutation();
+  const loading = registerMutation.isPending;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,48 +35,35 @@ const RegisterPage = () => {
       return;
     }
 
-    setLoading(true);
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000/api";
-      const response = await fetch(`${apiUrl}/register`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify({
-          name,
-          email,
-          password,
-          password_confirmation: passwordConfirmation,
-        }),
+      const data = await registerMutation.mutateAsync({
+        name,
+        email,
+        password,
+        password_confirmation: passwordConfirmation,
       });
 
-      const data = await response.json();
-
-      if (response.ok && (data.user || data.data?.user || data.token)) {
+      if (data.user || data.data?.user || data.token) {
         const user = data.user || data.data?.user || { id: "1", name, email };
         const token = data.token || data.data?.token || "mock-token";
         login(user, token);
         toast.success("Account created successfully!");
         router.push("/");
       } else {
-        if (!response.ok && data.message) {
-          toast.error(data.message);
-        } else {
-          // Demo fallback
-          login({ id: "1", name, email }, "dev-token");
-          toast.success("Account registered (Demo mode)");
-          router.push("/");
-        }
+        login({ id: "1", name, email }, "dev-token");
+        toast.success("Account registered (Demo mode)");
+        router.push("/");
       }
-    } catch {
-      // Offline demo fallback
-      login({ id: "1", name, email }, "dev-token");
-      toast.success("Account registered (Demo mode)");
-      router.push("/");
-    } finally {
-      setLoading(false);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "";
+      if (errorMessage && !errorMessage.includes("Failed to fetch")) {
+        toast.error(errorMessage);
+      } else {
+        // Offline demo fallback
+        login({ id: "1", name, email }, "dev-token");
+        toast.success("Account registered (Demo mode)");
+        router.push("/");
+      }
     }
   };
 

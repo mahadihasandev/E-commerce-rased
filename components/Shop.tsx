@@ -1,14 +1,14 @@
 "use client";
 
 import { Brand, Category, Product } from "@/types";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import Container from "./Container";
 import { Title } from "./ui/text";
 import CategoryList from "./Shop/CategoryList";
 import BrandList from "./Shop/BrandList";
 import PriceList from "./Shop/PriceList";
 import { useSearchParams } from "next/navigation";
-import { getProducts } from "@/lib/api";
+import { useProducts } from "@/hooks/useQueries";
 import ProductCard from "./ProductCard";
 import { TbLoader3 } from "react-icons/tb";
 import { AnimatePresence, motion } from "motion/react";
@@ -26,8 +26,6 @@ interface Props {
 }
 
 const Shop = ({ categories, brands }: Props) => {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(false);
   const searchParams = useSearchParams();
   const brandParams = searchParams.get("brand");
   const priceParams = searchParams.get("price");
@@ -51,39 +49,20 @@ const Shop = ({ categories, brands }: Props) => {
     setSelectedPrice(priceParams);
   }
 
-  useEffect(() => {
-    let ignore = false;
-    let minPrice: number | undefined;
-    let maxPrice: number | undefined;
-    if (selectedPrice) {
-      const [min, max] = selectedPrice.split("-").map(Number);
-      minPrice = min;
-      maxPrice = max;
-    }
+  let minPrice: number | undefined;
+  let maxPrice: number | undefined;
+  if (selectedPrice) {
+    const [min, max] = selectedPrice.split("-").map(Number);
+    minPrice = min;
+    maxPrice = max;
+  }
 
-    getProducts({
-      category: selectedCategory,
-      brand: selectedBrand,
-      minPrice,
-      maxPrice,
-    })
-      .then((result) => {
-        if (!ignore) {
-          setProducts(result);
-          setLoading(false);
-        }
-      })
-      .catch((error) => {
-        console.error("Fetching product error:", error);
-        if (!ignore) {
-          setLoading(false);
-        }
-      });
-
-    return () => {
-      ignore = true;
-    };
-  }, [selectedCategory, selectedBrand, selectedPrice]);
+  const { data: products = [], isLoading: loading } = useProducts({
+    category: selectedCategory,
+    brand: selectedBrand,
+    minPrice,
+    maxPrice,
+  });
 
   const hasActiveFilters =
     selectedCategory !== null ||

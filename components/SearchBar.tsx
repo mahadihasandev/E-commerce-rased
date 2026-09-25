@@ -2,8 +2,7 @@
 
 import { BsSearch } from "react-icons/bs";
 import { useState, useEffect, useRef } from "react";
-import { searchProducts } from "@/lib/api";
-import { Product } from "@/types";
+import { useSearchProducts } from "@/hooks/useQueries";
 import Link from "next/link";
 import Image from "next/image";
 import { urlFor } from "@/lib/image";
@@ -13,9 +12,16 @@ import PriceFormatter from "./PriceFormatter";
 const SearchBar = () => {
   const [search, setSearch] = useState(false);
   const [query, setQuery] = useState("");
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [debouncedQuery, setDebouncedQuery] = useState("");
   const searchRef = useRef<HTMLDivElement>(null);
+
+  const { data: searchResults = [], isFetching } =
+    useSearchProducts(debouncedQuery);
+
+  const isDebouncing =
+    query.trim() !== debouncedQuery.trim() && query.trim().length > 0;
+  const loading = (isFetching || isDebouncing) && query.trim().length > 0;
+  const products = debouncedQuery.trim() ? searchResults : [];
 
   const handleSearch = () => {
     setSearch(!search);
@@ -28,6 +34,13 @@ const SearchBar = () => {
   };
 
   useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedQuery(query);
+    }, 250);
+    return () => clearTimeout(handler);
+  }, [query]);
+
+  useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
         searchRef.current &&
@@ -35,7 +48,7 @@ const SearchBar = () => {
       ) {
         setSearch(false);
         setQuery("");
-        setProducts([]);
+        setDebouncedQuery("");
       }
     };
 
@@ -49,30 +62,6 @@ const SearchBar = () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [search]);
-
-  useEffect(() => {
-    const fetchProducts = async () => {
-      if (query.trim().length > 0) {
-        setLoading(true);
-        try {
-          const results = await searchProducts(query);
-          setProducts(results);
-        } catch (error) {
-          console.error("Search error:", error);
-        } finally {
-          setLoading(false);
-        }
-      } else {
-        setProducts([]);
-      }
-    };
-
-    const debounce = setTimeout(() => {
-      fetchProducts();
-    }, 300);
-
-    return () => clearTimeout(debounce);
-  }, [query]);
 
   return (
     <div ref={searchRef} className="relative">
@@ -96,7 +85,10 @@ const SearchBar = () => {
             />
             {query && (
               <X
-                onClick={() => setQuery("")}
+                onClick={() => {
+                  setQuery("");
+                  setDebouncedQuery("");
+                }}
                 className="absolute right-3 w-4 h-4 text-gray-400 cursor-pointer hover:text-red-500 transition-colors"
               />
             )}

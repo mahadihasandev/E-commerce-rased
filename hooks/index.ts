@@ -16,3 +16,6 @@ export function useOutSideClick <T extends HTMLElement>(callback:()=>void){
     },[callback])
     return ref
 }
+
+export * from "./useQueries";
+export * from "./useAuth";

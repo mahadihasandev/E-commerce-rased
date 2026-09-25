@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import {
   Carousel,
   CarouselContent,
@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/carousel";
 import Image from "next/image";
 import { Banner } from "@/types";
-import { getBanners } from "@/lib/api";
+import { useBanners } from "@/hooks/useQueries";
 import { urlFor } from "@/lib/image";
 import Autoplay from "embla-carousel-autoplay";
 import Link from "next/link";
@@ -56,33 +56,15 @@ export const HomeBannerSkeleton = () => {
 };
 
 const HomeBanner: React.FC<HomeBannerProps> = ({ initialBanners = [] }) => {
-  const [banner, setBanner] = useState<Banner[]>(initialBanners);
-  const [loading, setLoading] = useState(initialBanners.length === 0);
+  const { data: banner = initialBanners, isLoading } = useBanners(
+    initialBanners.length ? initialBanners : undefined
+  );
+  const loading = isLoading && (!banner || banner.length === 0);
 
   const plugins = React.useMemo(
     () => [Autoplay({ delay: 5000, stopOnInteraction: false })],
     []
   );
-
-  useEffect(() => {
-    if (initialBanners && initialBanners.length > 0) {
-      setBanner(initialBanners);
-      setLoading(false);
-      return;
-    }
-
-    const fetchData = async () => {
-      try {
-        const response = await getBanners();
-        setBanner(response);
-      } catch (error) {
-        console.error("fetchData error", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, [initialBanners]);
 
   if (loading || !banner.length) {
     return <HomeBannerSkeleton />;
