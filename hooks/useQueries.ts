@@ -35,6 +35,8 @@ export interface ProductFilters {
   variant?: string | null;
   minPrice?: number;
   maxPrice?: number;
+  page?: number;
+  limit?: number;
 }
 
 export function normalizeProductFilters(
@@ -47,6 +49,8 @@ export function normalizeProductFilters(
   if (filters.variant) normalized.variant = filters.variant;
   if (filters.minPrice !== undefined) normalized.minPrice = filters.minPrice;
   if (filters.maxPrice !== undefined) normalized.maxPrice = filters.maxPrice;
+  if (filters.page !== undefined) normalized.page = filters.page;
+  if (filters.limit !== undefined) normalized.limit = filters.limit;
   return Object.keys(normalized).length > 0 ? normalized : undefined;
 }
 
@@ -61,7 +65,7 @@ export const queryKeys = {
   products: (filters?: ProductFilters) =>
     ["products", normalizeProductFilters(filters)] as const,
   singleProduct: (slug: string) => ["product", slug] as const,
-  bestSellers: (limit?: number) => ["products", "bestSellers", limit] as const,
+  bestSellers: (limit?: number, page?: number) => ["products", "bestSellers", limit, page] as const,
   hotDeals: () => ["products", "hotDeals"] as const,
   searchProducts: (query: string) => ["products", "search", query] as const,
   blogs: (quantity?: number) => ["blogs", quantity] as const,
@@ -128,11 +132,18 @@ export function useSingleProduct(slug: string, initialData?: Product | null) {
   });
 }
 
-export function useBestSellers(limit: number = 10, initialData?: Product[]) {
+export function useBestSellers(
+  limit: number = 10,
+  pageOrInitial?: number | Product[],
+  initialData?: Product[]
+) {
+  const page = typeof pageOrInitial === "number" ? pageOrInitial : 1;
+  const initial = Array.isArray(pageOrInitial) ? pageOrInitial : initialData;
+
   return useQuery({
-    queryKey: queryKeys.bestSellers(limit),
-    queryFn: () => getBestSellers(limit),
-    initialData,
+    queryKey: queryKeys.bestSellers(limit, page),
+    queryFn: () => getBestSellers(limit, page),
+    initialData: initial,
   });
 }
 

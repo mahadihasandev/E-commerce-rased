@@ -1,7 +1,7 @@
 "use client";
 
 import { Brand, Category, Product } from "@/types";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Container from "./Container";
 import { Title } from "./ui/text";
 import CategoryList from "./Shop/CategoryList";
@@ -18,7 +18,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { RotateCcw, SlidersHorizontal } from "lucide-react";
+import { RotateCcw, SlidersHorizontal, ChevronLeft, ChevronRight } from "lucide-react";
 
 interface Props {
   categories: Category[];
@@ -29,6 +29,7 @@ const Shop = ({ categories, brands }: Props) => {
   const searchParams = useSearchParams();
   const brandParams = searchParams.get("brand");
   const priceParams = searchParams.get("price");
+  const [currentPage, setCurrentPage] = useState(1);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedBrand, setSelectedBrand] = useState<string | null>(
     brandParams || null
@@ -41,13 +42,19 @@ const Shop = ({ categories, brands }: Props) => {
   if (brandParams !== prevBrandParams) {
     setPrevBrandParams(brandParams);
     setSelectedBrand(brandParams);
+    setCurrentPage(1);
   }
 
   const [prevPriceParams, setPrevPriceParams] = useState(priceParams);
   if (priceParams !== prevPriceParams) {
     setPrevPriceParams(priceParams);
     setSelectedPrice(priceParams);
+    setCurrentPage(1);
   }
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedCategory, selectedBrand, selectedPrice]);
 
   let minPrice: number | undefined;
   let maxPrice: number | undefined;
@@ -57,17 +64,28 @@ const Shop = ({ categories, brands }: Props) => {
     maxPrice = max;
   }
 
+  const perPage = 12;
+
   const { data: products = [], isLoading: loading } = useProducts({
     category: selectedCategory,
     brand: selectedBrand,
     minPrice,
     maxPrice,
+    page: currentPage,
+    limit: perPage,
   });
 
   const hasActiveFilters =
     selectedCategory !== null ||
     selectedBrand !== null ||
     selectedPrice !== null;
+
+  const handleResetFilters = () => {
+    setSelectedCategory(null);
+    setSelectedBrand(null);
+    setSelectedPrice(null);
+    setCurrentPage(1);
+  };
 
   return (
     <div>
@@ -82,18 +100,14 @@ const Shop = ({ categories, brands }: Props) => {
                 Catalog & Filter Store
               </Title>
               <p className="text-xs text-slate-500 mt-1">
-                Found {products.length} products matching your criteria
+                Showing page {currentPage} • {products.length} products on this page
               </p>
             </div>
           </div>
 
           {hasActiveFilters && (
             <button
-              onClick={() => {
-                setSelectedCategory(null);
-                setSelectedBrand(null);
-                setSelectedPrice(null);
-              }}
+              onClick={handleResetFilters}
               className="inline-flex items-center gap-1.5 text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-xl px-4 py-2 transition-colors"
             >
               <RotateCcw size={13} />
@@ -153,27 +167,62 @@ const Shop = ({ categories, brands }: Props) => {
             </Accordion>
           </div>
 
-          <main className="flex-1 min-w-0 w-full">
+          <main className="flex-1 min-w-0 w-full" id="catalog-grid">
             {loading ? (
               <div className="flex flex-col items-center justify-center py-20 min-h-[400px] space-y-3 bg-white rounded-3xl border border-slate-100 shadow-sm w-full">
                 <TbLoader3 className="w-10 h-10 animate-spin text-shop_light_blue" />
                 <span className="text-sm font-semibold text-slate-600">Updating catalog...</span>
               </div>
             ) : products?.length > 0 ? (
-              <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {products.map((item: Product) => (
-                  <AnimatePresence key={item._id}>
-                    <motion.div
-                      layout
-                      initial={{ opacity: 0.2 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <ProductCard product={item} />
-                    </motion.div>
-                  </AnimatePresence>
-                ))}
+              <div className="space-y-8">
+                <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {products.map((item: Product) => (
+                    <AnimatePresence key={item._id}>
+                      <motion.div
+                        layout
+                        initial={{ opacity: 0.2 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <ProductCard product={item} />
+                      </motion.div>
+                    </AnimatePresence>
+                  ))}
+                </div>
+
+                {/* Pagination Controls */}
+                <div className="flex items-center justify-between p-4 bg-white rounded-2xl border border-slate-100 shadow-sm">
+                  <button
+                    disabled={currentPage <= 1 || loading}
+                    onClick={() => {
+                      setCurrentPage((p) => Math.max(1, p - 1));
+                      document.getElementById("catalog-grid")?.scrollIntoView({ behavior: "smooth" });
+                    }}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                  >
+                    <ChevronLeft size={14} />
+                    Previous
+                  </button>
+
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold px-3 py-1.5 rounded-lg bg-shop_light_blue/10 text-shop_light_blue border border-shop_light_blue/20">
+                      Page {currentPage}
+                    </span>
+                  </div>
+
+                  <button
+                    disabled={products.length < perPage || loading}
+                    onClick={() => {
+                      setCurrentPage((p) => p + 1);
+                      document.getElementById("catalog-grid")?.scrollIntoView({ behavior: "smooth" });
+                    }}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold text-white bg-shop_light_blue hover:bg-shop_light_blue/90 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm transition-all"
+                  >
+                    Next
+                    <ChevronRight size={14} />
+                  </button>
+                </div>
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-20 bg-white rounded-3xl border border-slate-100 p-8 text-center">

@@ -1357,14 +1357,14 @@ export const getHotDeals = async (): Promise<Product[]> => {
   return Array.isArray(res) ? res : deals;
 };
 
-export const getBestSellers = async (limit: number = 10): Promise<Product[]> => {
+export const getBestSellers = async (limit: number = 10, page: number = 1): Promise<Product[]> => {
   // Check if any product has sales recorded (> 0)
   const anyHasSales = MOCK_PRODUCTS.some((p) => (p.sales_count ?? 0) > 0);
 
   let sortedFallback: Product[];
   if (!anyHasSales) {
     // When no product has sales yet (all 0), show strictly in original array serial
-    sortedFallback = [...MOCK_PRODUCTS].slice(0, limit);
+    sortedFallback = [...MOCK_PRODUCTS].slice((page - 1) * limit, page * limit);
   } else {
     // Rank by number of sales desc; if sales is 0 or equal, fall back to array serial
     sortedFallback = [...MOCK_PRODUCTS]
@@ -1378,10 +1378,10 @@ export const getBestSellers = async (limit: number = 10): Promise<Product[]> => 
         return a.index - b.index; // preserves array serial
       })
       .map((item) => item.p)
-      .slice(0, limit);
+      .slice((page - 1) * limit, page * limit);
   }
 
-  const res = await fetchAPI<Product[]>(`/products/best-sellers?limit=${limit}`, sortedFallback);
+  const res = await fetchAPI<Product[]>(`/products/best-sellers?limit=${limit}&page=${page}`, sortedFallback);
   return Array.isArray(res) ? res : sortedFallback;
 };
 
@@ -1459,6 +1459,8 @@ export const getProducts = async (filters?: {
   variant?: string | null;
   minPrice?: number;
   maxPrice?: number;
+  page?: number;
+  limit?: number;
 }): Promise<Product[]> => {
   let list = [...MOCK_PRODUCTS];
 
@@ -1510,6 +1512,8 @@ export const getProducts = async (filters?: {
   if (filters?.variant) queryParams.set("variant", filters.variant);
   if (filters?.minPrice !== undefined) queryParams.set("minPrice", String(filters.minPrice));
   if (filters?.maxPrice !== undefined) queryParams.set("maxPrice", String(filters.maxPrice));
+  if (filters?.page !== undefined) queryParams.set("page", String(filters.page));
+  if (filters?.limit !== undefined) queryParams.set("limit", String(filters.limit));
 
   return fetchAPI<Product[]>(`/products?${queryParams.toString()}`, list);
 };
