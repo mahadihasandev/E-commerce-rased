@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600" viewBox="0 0 600 600" fill="none">
+  <rect width="600" height="600" rx="32" fill="#F8FAFC"/>
+  <rect x="2" y="2" width="596" height="596" rx="30" stroke="#E2E8F0" stroke-width="4"/>
+  <circle cx="300" cy="270" r="100" fill="#EEF2F6"/>
+  <path d="M260 300L290 260L315 285L335 255L360 300H260Z" fill="#94A3B8"/>
+  <circle cx="280" cy="245" r="14" fill="#94A3B8"/>
+  <text x="300" y="420" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="22" font-weight="600" fill="#64748B">Product Preview</text>
+  <text x="300" y="450" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#94A3B8">Image will appear once loaded</text>
+</svg>
