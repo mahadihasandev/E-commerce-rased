@@ -12,32 +12,47 @@ import {
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000/api";
 
-// Helper fetcher with error resilience, 30s ISR caching, and timeout protection
+// In-flight request deduplication to prevent duplicate concurrent network fetches
+const inFlightRequests = new Map<string, Promise<unknown>>();
+
+// Helper fetcher with error resilience, deduplication, 30s ISR caching, and timeout protection
 async function fetchAPI<T>(endpoint: string, fallback: T, revalidateSeconds: number = 30): Promise<T> {
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 4000);
+  const url = `${API_BASE_URL}${endpoint}`;
 
-    const res = await fetch(`${API_BASE_URL}${endpoint}`, {
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      next: { revalidate: revalidateSeconds },
-      signal: controller.signal,
-    });
-    clearTimeout(timeoutId);
-
-    if (!res.ok) {
-      return fallback;
-    }
-
-    const data = await res.json();
-    return (data.data ?? data) as T;
-  } catch {
-    // If Laravel backend is offline or during build, use fallback data
-    return fallback;
+  if (inFlightRequests.has(url)) {
+    return inFlightRequests.get(url)! as Promise<T>;
   }
+
+  const fetchPromise = (async (): Promise<T> => {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 6000);
+
+      const res = await fetch(url, {
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        next: { revalidate: revalidateSeconds },
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+
+      if (!res.ok) {
+        return fallback;
+      }
+
+      const data = await res.json();
+      return (data.data ?? data) as T;
+    } catch {
+      return fallback;
+    } finally {
+      inFlightRequests.delete(url);
+    }
+  })();
+
+  inFlightRequests.set(url, fetchPromise);
+  return fetchPromise;
 }
 
 // -------------------------------------------------------------
