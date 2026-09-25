@@ -1001,7 +1001,7 @@ export const MOCK_PRODUCTS: Product[] = [
     name: "Sony PlayStation VR2 Headset Horizon Call of the Mountain Bundle",
     slug: { current: "sony-playstation-vr2-horizon-bundle" },
     images: [
-      "https://images.unsplash.com/photo-1622979135225-d2ba269bc1df?w=800&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1593508512255-86ab42a8e620?w=800&auto=format&fit=crop&q=80",
     ],
     price: 549,
     discount: 15,
