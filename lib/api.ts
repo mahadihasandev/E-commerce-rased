@@ -15,8 +15,8 @@ const API_BASE_URL =
 // In-flight request deduplication to prevent duplicate concurrent network fetches
 const inFlightRequests = new Map<string, Promise<unknown>>();
 
-// Helper fetcher with error resilience, deduplication, 30s ISR caching, and timeout protection
-async function fetchAPI<T>(endpoint: string, fallback: T, revalidateSeconds: number = 30): Promise<T> {
+// Helper fetcher with error resilience, deduplication, 60s ISR caching, and timeout protection
+async function fetchAPI<T>(endpoint: string, fallback: T, revalidateSeconds: number = 60): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`;
 
   if (inFlightRequests.has(url)) {
@@ -26,7 +26,7 @@ async function fetchAPI<T>(endpoint: string, fallback: T, revalidateSeconds: num
   const fetchPromise = (async (): Promise<T> => {
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 6000);
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
 
       const res = await fetch(url, {
         headers: {
