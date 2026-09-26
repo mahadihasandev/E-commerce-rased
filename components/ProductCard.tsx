@@ -130,14 +130,14 @@ const ProductCard = ({ product, className }: Props) => {
         </div>
 
         <div className="space-y-3 pt-2 border-t border-slate-50">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-2.5">
             <PriceView
               price={product?.price}
               discount={product?.discount}
-              className="text-base font-bold"
+              className="text-base font-bold min-w-0"
             />
             <span
-              className={`text-[11px] font-semibold ${
+              className={`text-[11px] font-semibold shrink-0 whitespace-nowrap translate-x-[10px] ${
                 (product?.stock ?? 0) > 0 ? "text-emerald-600" : "text-rose-500"
               }`}
             >

@@ -74,14 +74,14 @@ const SingleProductPage = async ({
                 </div>
               </div>
 
-              <div className="flex items-center justify-between border-y border-slate-100 py-4">
+              <div className="flex items-center justify-between gap-3 border-y border-slate-100 py-4">
                 <PriceView
                   price={product?.price}
                   discount={product?.discount}
-                  className="text-2xl font-bold"
+                  className="text-2xl font-bold min-w-0"
                 />
                 <span
-                  className={`px-3 py-1 text-xs font-semibold rounded-full ${
+                  className={`px-3 py-1 text-xs font-semibold rounded-full shrink-0 whitespace-nowrap ${
                     (product?.stock ?? 0) > 0
                       ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
                       : "bg-rose-50 text-rose-700 border border-rose-200"
