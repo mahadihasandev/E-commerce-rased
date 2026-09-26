@@ -19,7 +19,8 @@ const AddToCartButton = ({ product, className }: Props) => {
 
   const itemCount = getItemCount(product._id);
 
-  const handleAddToCart = () => {
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.stopPropagation();
     // Check if we have enough stock before adding
     if ((product.stock as number) > itemCount) {
       addItem(product);
@@ -36,7 +37,10 @@ const AddToCartButton = ({ product, className }: Props) => {
   return (
     <>
       {itemCount ? (
-        <div className="text-sm w-full">
+        <div
+          className="text-sm w-full"
+          onClick={(e) => e.stopPropagation()}
+        >
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-darkColor/80">
               Quantity

@@ -50,9 +50,12 @@ const WishListProducts = () => {
                                     <XCircle onClick={()=>{removeFromFavorite(product._id)
                                       toast.success("Product removed from wishlist")
                                     }} size={25} className='text-red-400 hover:scale-110 hover:text-red-500 cursor-pointer hoverEffect'/>
-                                    {product?.images&&<Link href={`/product/${product.slug?.current}`} 
-                                    className='border rounded-md group hidden md:inline-flex'
-                                    >
+                                    {product?.images &&
+                                      <Link
+                                        href={`/product/${product.slug?.current}`}
+                                        prefetch={true}
+                                        className="border rounded-md group hidden md:inline-flex"
+                                      >
                                     <Image src={urlFor(product?.images[0]).url()} 
                                     width={80}
                                     height={80}
@@ -63,7 +66,15 @@ const WishListProducts = () => {
                                     </Link>}
                                    
                                   </td>
-                                  <td> <p className='line-clamp-1 text-sm font-medium'>{product.name}</p></td>
+                                  <td>
+                                    <Link
+                                      href={`/product/${product.slug?.current}`}
+                                      prefetch={true}
+                                      className="hover:text-shop_light_blue transition-colors"
+                                    >
+                                      <p className="line-clamp-1 text-sm font-medium">{product.name}</p>
+                                    </Link>
+                                  </td>
                                   <td className='hidden capitalize p-2 md:table-cell'>
                                     {product?.categories&&(
                                       <p className='line-clamp-1 uppercase text-xs font-medium'>{product?.categories?.map((category)=>category).join(", ")}</p>

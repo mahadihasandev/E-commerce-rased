@@ -35,7 +35,7 @@ const Footer = () => {
                 {
                   quickLinksData.map((item)=>(
                     <li key={item?.title}>
-                      <Link className="hover:text-shop_light_blue hoverEffect font-medium" href={item?.href}>
+                      <Link prefetch={false} className="hover:text-shop_light_blue hoverEffect font-medium" href={item?.href}>
                         {item?.title}
                       </Link>
                     </li>

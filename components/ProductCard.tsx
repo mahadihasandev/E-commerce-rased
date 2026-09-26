@@ -1,7 +1,10 @@
+"use client";
+
 import { Product } from "@/types";
 import { urlFor } from "@/lib/image";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { GiFlame } from "react-icons/gi";
 import AddToWishListButton from "./AddToWishListButton";
 import { Title } from "./ui/text";
@@ -16,6 +19,19 @@ interface Props {
 }
 
 const ProductCard = ({ product, className }: Props) => {
+  const router = useRouter();
+
+  const handleCardClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLElement;
+    // Do not trigger outer card navigation if user clicked inside buttons, inputs or links
+    if (target.closest("button") || target.closest("a") || target.closest("[role='button']")) {
+      return;
+    }
+    if (product?.slug?.current) {
+      router.push(`/product/${product.slug.current}`);
+    }
+  };
+
   const imageUrl =
     product?.images && product.images.length > 0
       ? urlFor(product.images[0]).url()
@@ -35,13 +51,18 @@ const ProductCard = ({ product, className }: Props) => {
 
   return (
     <div
+      onClick={handleCardClick}
       className={cn(
-        `group bg-white rounded-2xl border border-slate-100 shadow-xs hover:shadow-xl hover:shadow-shop_light_blue/10 transition-all duration-300 flex flex-col justify-between overflow-hidden hover:-translate-y-1`,
+        `group bg-white rounded-2xl border border-slate-100 shadow-xs hover:shadow-xl hover:shadow-shop_light_blue/10 transition-all duration-300 flex flex-col justify-between overflow-hidden hover:-translate-y-1 cursor-pointer select-none`,
         className
       )}
     >
       <div className="relative bg-slate-50/80 p-4 overflow-hidden aspect-square flex items-center justify-center">
-        <Link href={`/product/${product?.slug?.current}`} className="w-full h-full flex items-center justify-center">
+        <Link
+          href={`/product/${product?.slug?.current}`}
+          prefetch={true}
+          className="w-full h-full flex items-center justify-center"
+        >
           <Image
             height={400}
             width={400}
@@ -88,7 +109,7 @@ const ProductCard = ({ product, className }: Props) => {
             </p>
           )}
 
-          <Link href={`/product/${product?.slug?.current}`}>
+          <Link href={`/product/${product?.slug?.current}`} prefetch={true}>
             <Title className="text-sm! font-bold text-slate-900 group-hover:text-shop_light_blue transition-colors line-clamp-2 leading-snug">
               {product?.name}
             </Title>

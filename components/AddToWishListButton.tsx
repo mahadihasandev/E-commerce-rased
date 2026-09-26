@@ -22,14 +22,13 @@ const AddToWishListButton = ({
   
   const handleFavorite = (e: React.MouseEvent<HTMLDivElement>) => {
     e.preventDefault();
+    e.stopPropagation();
     if(product._id){
       addToFavorite(product)
       .then(() => {
         toast.success(availableProduct? `${product.name?.substring(0,15)} removed from wishlist`:`${product.name?.substring(0,15)} added to wishlist`);
       })
     }
-    
-    
   };
   return (
     <div className={cn("", className)}>

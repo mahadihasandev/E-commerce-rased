@@ -1386,8 +1386,39 @@ export const getBestSellers = async (limit: number = 10, page: number = 1): Prom
 };
 
 export const getSingleProduct = async (slug: string): Promise<Product | null> => {
-  const fallback = MOCK_PRODUCTS.find((p) => p.slug.current === slug) || null;
-  return fetchAPI<Product | null>(`/products/${slug}`, fallback);
+  // 1. Attempt direct endpoint lookup
+  const directProduct = await fetchAPI<Product | null>(`/products/${slug}`, null);
+  if (directProduct && (directProduct._id || directProduct.name)) {
+    return directProduct;
+  }
+
+  // 2. Fallback: Search by keyword/slug if direct slug lookup fails (handles PostgreSQL non-numeric id query)
+  try {
+    const searchRes = await fetchAPI<Product[]>(`/products/search?q=${encodeURIComponent(slug)}`, []);
+    if (Array.isArray(searchRes) && searchRes.length > 0) {
+      const match =
+        searchRes.find((p) => {
+          const currentSlug = typeof p?.slug === "object" ? p?.slug?.current : p?.slug;
+          return currentSlug === slug || p?._id === slug || String(p?.id) === slug;
+        }) || searchRes[0];
+
+      if (match) {
+        if (match.id) {
+          // Numeric ID fetch works seamlessly on backend
+          const productById = await fetchAPI<Product | null>(`/products/${match.id}`, match);
+          if (productById && (productById._id || productById.name)) {
+            return productById;
+          }
+        }
+        return match;
+      }
+    }
+  } catch {
+    // proceed to mock catalog fallback
+  }
+
+  // 3. Fallback to mock catalog
+  return MOCK_PRODUCTS.find((p) => p.slug.current === slug) || null;
 };
 
 export const getBrands = async (slug?: string): Promise<Brand[] | null> => {

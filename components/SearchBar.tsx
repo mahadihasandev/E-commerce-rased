@@ -119,6 +119,7 @@ const SearchBar = () => {
                   <Link
                     key={product._id}
                     href={`/product/${product.slug?.current}`}
+                    prefetch={true}
                     onClick={() => {
                       setSearch(false);
                       setQuery("");
