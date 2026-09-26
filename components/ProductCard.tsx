@@ -103,11 +103,22 @@ const ProductCard = ({ product, className }: Props) => {
 
       <div className="p-4 flex flex-col justify-between flex-1 gap-2.5">
         <div>
-          {categoriesText && (
-            <p className="uppercase line-clamp-1 text-[11px] font-semibold text-slate-400 tracking-wider mb-1">
-              {categoriesText}
-            </p>
-          )}
+          <div className="flex items-center justify-between gap-2 mb-1">
+            {categoriesText ? (
+              <p className="uppercase line-clamp-1 text-[11px] font-semibold text-slate-400 tracking-wider">
+                {categoriesText}
+              </p>
+            ) : (
+              <span />
+            )}
+            <span
+              className={`text-[11px] font-semibold shrink-0 whitespace-nowrap ml-auto ${
+                (product?.stock ?? 0) > 0 ? "text-emerald-600" : "text-rose-500"
+              }`}
+            >
+              {(product?.stock ?? 0) > 0 ? "In Stock" : "Out of Stock"}
+            </span>
+          </div>
 
           <Link href={`/product/${product?.slug?.current}`} prefetch={true}>
             <Title className="text-sm! font-bold text-slate-900 group-hover:text-shop_light_blue transition-colors line-clamp-2 leading-snug">
@@ -130,19 +141,12 @@ const ProductCard = ({ product, className }: Props) => {
         </div>
 
         <div className="space-y-3 pt-2 border-t border-slate-50">
-          <div className="flex items-center justify-between gap-[7px]">
+          <div className="flex items-center justify-between">
             <PriceView
               price={product?.price}
               discount={product?.discount}
-              className="text-base font-bold min-w-0"
+              className="text-base font-bold"
             />
-            <span
-              className={`text-[11px] font-semibold shrink-0 whitespace-nowrap translate-x-[7px] ${
-                (product?.stock ?? 0) > 0 ? "text-emerald-600" : "text-rose-500"
-              }`}
-            >
-              {(product?.stock ?? 0) > 0 ? "In Stock" : "Out of Stock"}
-            </span>
           </div>
 
           <AddToCartButton
