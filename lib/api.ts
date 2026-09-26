@@ -26,7 +26,7 @@ async function fetchAPI<T>(endpoint: string, fallback: T, revalidateSeconds: num
   const fetchPromise = (async (): Promise<T> => {
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000);
+      const timeoutId = setTimeout(() => controller.abort(), 25000);
 
       const res = await fetch(url, {
         headers: {
