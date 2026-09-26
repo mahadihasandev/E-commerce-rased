@@ -12,7 +12,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import { Flame, Sparkles, TrendingUp } from "lucide-react";
+import { Flame, Sparkles } from "lucide-react";
 import Link from "next/link";
 
 interface BestSellersSliderProps {
@@ -99,44 +99,14 @@ export default function BestSellersSlider({
 
         {/* Carousel Content Slides */}
         <CarouselContent className="-ml-3 sm:-ml-4">
-          {products.map((product, index) => {
-            const salesCount = product.sales_count ?? 0;
-
-            return (
-              <CarouselItem
-                key={product._id || product.id || index}
-                className="pl-3 sm:pl-4 basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5"
-              >
-                <div className="relative h-full flex flex-col group">
-                  {/* Rank & Sales Badge Overlay */}
-                  <div className="absolute top-2 left-2 z-20 flex flex-col gap-1 pointer-events-none">
-                    <span
-                      className={`inline-flex items-center justify-center px-2 py-0.5 rounded-lg text-[10px] font-black tracking-wider uppercase shadow-xs ${
-                        index === 0
-                          ? "bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-extrabold shadow-amber-500/20"
-                          : index === 1
-                          ? "bg-gradient-to-r from-slate-200 to-slate-300 text-slate-900 font-bold"
-                          : index === 2
-                          ? "bg-gradient-to-r from-amber-600 to-amber-700 text-white font-bold"
-                          : "bg-white/90 backdrop-blur-md text-slate-700 font-semibold border border-slate-200"
-                      }`}
-                    >
-                      #{index + 1}
-                    </span>
-
-                    {salesCount > 0 ? (
-                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9px] font-bold bg-black/75 text-emerald-400 backdrop-blur-md">
-                        <TrendingUp size={10} />
-                        {salesCount} sold
-                      </span>
-                    ) : null}
-                  </div>
-
-                  <ProductCard product={product} className="h-full" />
-                </div>
-              </CarouselItem>
-            );
-          })}
+          {products.map((product, index) => (
+            <CarouselItem
+              key={product._id || product.id || index}
+              className="pl-3 sm:pl-4 basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5"
+            >
+              <ProductCard product={product} className="h-full" />
+            </CarouselItem>
+          ))}
         </CarouselContent>
       </Carousel>
     </section>
