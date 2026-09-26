@@ -16,11 +16,6 @@ jobs:
           echo "Pinging Render Services ($(date))"
           echo "=========================================="
           
-          # Ping Backend Health
-          echo "Pinging Backend..."
-          STATUS_B=$(curl -s -o /dev/null -w "%{http_code}" -m 30 "https://php-ecommerce-backend-rased.onrender.com/api/health" || echo "FAIL")
-          echo "Backend Status: $STATUS_B"
-          
           # Ping Frontend Health
           echo "Pinging Frontend..."
           STATUS_F=$(curl -s -o /dev/null -w "%{http_code}" -m 30 "https://e-commerce-rased.onrender.com/api/health" || echo "FAIL")
