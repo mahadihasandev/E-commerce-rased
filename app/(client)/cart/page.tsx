@@ -31,6 +31,7 @@ import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { GiShoppingCart } from "react-icons/gi";
 import { RiDeleteBin2Line } from "react-icons/ri";
+import { CreditCard, Zap, Truck, Lock, ShieldCheck } from "lucide-react";
 
 const CartPage = () => {
   const {
@@ -47,6 +48,7 @@ const CartPage = () => {
   const { isSignedIn, user } = useAuth();
   const { data: addresses = [] } = useAddresses();
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<"demo_pay" | "cod">("demo_pay");
 
   useEffect(() => {
     setMounted(true);
@@ -66,29 +68,163 @@ const CartPage = () => {
       toast.success("Cart reset successfully!");
     }
   };
+
   const handleCheckout = async () => {
     setLoading(true);
     try {
+      const orderNumber = `ORD-${Date.now().toString().slice(-6)}-${Math.floor(1000 + Math.random() * 9000)}`;
       const metadata: Metadata = {
-        orderNumber: crypto.randomUUID(),
-        customerName: user?.name ?? "Customer",
+        orderNumber,
+        customerName: user?.name ?? "Demo Customer",
         customerEmail: user?.email ?? "customer@example.com",
         userId: user?.id ? String(user.id) : undefined,
         addresses: selectedAddress,
+        paymentMethod: paymentMethod,
       };
+
       const checkOutUrl = await CreateCheckOutSessions(groupedItems, metadata);
-      console.log(checkOutUrl);
 
       if (checkOutUrl) {
+        toast.success(
+          paymentMethod === "cod"
+            ? "Order placed with Cash on Delivery!"
+            : "Payment verified successfully (Demo Mode)!"
+        );
+        resetCart();
         window.location.href = checkOutUrl;
       }
     } catch (error) {
       console.error("Error creating checkout session:", error);
-      toast.error(`Failed to create checkout session: ${error}`);
+      toast.error(`Failed to create checkout session: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
       setLoading(false);
     }
   };
+
+  // Reusable Payment Methods Selector Card
+  const renderPaymentMethods = () => (
+    <div className="border border-shop_light_blue/20 bg-shop_light_bg rounded-lg shadow-md shadow-shop_light_blue/30 my-3">
+      <Card className="bg-shop_light_bg shadow-none border-none">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base font-bold flex items-center gap-2">
+              <CreditCard className="w-5 h-5 text-shop_light_blue" />
+              Payment Method
+            </CardTitle>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 border border-emerald-500/30 flex items-center gap-1">
+              <Zap className="w-3 h-3 text-emerald-600" />
+              Demo / Test Mode Active
+            </span>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-3 pt-0">
+          {/* Method 1: Instant Demo Gateway (Active / Recommended) */}
+          <div
+            onClick={() => setPaymentMethod("demo_pay")}
+            className={`p-3.5 rounded-xl border transition-all cursor-pointer ${
+              paymentMethod === "demo_pay"
+                ? "border-shop_light_blue bg-shop_light_blue/10 shadow-sm"
+                : "border-gray-200 hover:border-gray-300 bg-white"
+            }`}
+          >
+            <div className="flex items-start justify-between">
+              <div className="flex items-start gap-3">
+                <input
+                  type="radio"
+                  name="payment_choice"
+                  id="method_demo_pay"
+                  checked={paymentMethod === "demo_pay"}
+                  onChange={() => setPaymentMethod("demo_pay")}
+                  className="mt-1 w-4 h-4 text-shop_light_blue accent-shop_light_blue cursor-pointer"
+                />
+                <div>
+                  <label
+                    htmlFor="method_demo_pay"
+                    className="font-bold text-sm text-gray-800 flex items-center gap-2 cursor-pointer"
+                  >
+                    ⚡ Instant Demo Pay (Simulated)
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-300">
+                      Recommended
+                    </span>
+                  </label>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    Simulates instant approval &amp; generates real order in database without needing a real card.
+                  </p>
+                  {paymentMethod === "demo_pay" && (
+                    <div className="mt-2 text-[11px] font-mono text-gray-600 bg-white/80 px-2.5 py-1.5 rounded border border-shop_light_blue/20 flex flex-wrap items-center gap-3">
+                      <span>Card: •••• 4242</span>
+                      <span>Exp: 12/28</span>
+                      <span className="text-emerald-600 font-semibold flex items-center gap-1">
+                        <ShieldCheck className="w-3.5 h-3.5" /> Auto-Approved
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Method 2: Cash on Delivery (Active) */}
+          <div
+            onClick={() => setPaymentMethod("cod")}
+            className={`p-3.5 rounded-xl border transition-all cursor-pointer ${
+              paymentMethod === "cod"
+                ? "border-shop_light_blue bg-shop_light_blue/10 shadow-sm"
+                : "border-gray-200 hover:border-gray-300 bg-white"
+            }`}
+          >
+            <div className="flex items-start gap-3">
+              <input
+                type="radio"
+                name="payment_choice"
+                id="method_cod"
+                checked={paymentMethod === "cod"}
+                onChange={() => setPaymentMethod("cod")}
+                className="mt-1 w-4 h-4 text-shop_light_blue accent-shop_light_blue cursor-pointer"
+              />
+              <div>
+                <label
+                  htmlFor="method_cod"
+                  className="font-bold text-sm text-gray-800 flex items-center gap-2 cursor-pointer"
+                >
+                  <Truck className="w-4 h-4 text-amber-600" />
+                  Cash on Delivery (COD)
+                </label>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Pay in cash when order is delivered to your address.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Method 3: Real Stripe Card (Disabled as requested) */}
+          <div className="p-3.5 rounded-xl border border-gray-200 bg-gray-100/70 opacity-60 cursor-not-allowed">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-start gap-3">
+                <input
+                  type="radio"
+                  disabled
+                  className="mt-1 w-4 h-4 text-gray-400 cursor-not-allowed"
+                />
+                <div>
+                  <div className="font-semibold text-sm text-gray-600 flex items-center gap-2">
+                    <CreditCard className="w-4 h-4 text-gray-400" />
+                    Stripe Credit / Debit Card
+                  </div>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    Currently offline (real Stripe keys will be connected later).
+                  </p>
+                </div>
+              </div>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-gray-200 text-gray-500 flex items-center gap-1">
+                <Lock className="w-3 h-3" /> Disabled
+              </span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
 
   if (!mounted) {
     return (
@@ -257,9 +393,18 @@ const CartPage = () => {
                           onClick={handleCheckout}
                           disabled={loading}
                         >
-                          {loading ? "Loading..." : "Proceed to Checkout"}
+                          {loading
+                            ? "Processing Test Payment..."
+                            : paymentMethod === "cod"
+                              ? "Place Order (Cash on Delivery)"
+                              : "⚡ Complete Order (Demo Mode)"}
                         </Button>
                       </div>
+                    </div>
+
+                    {/* Payment Method Selector on Desktop */}
+                    <div className="hidden md:block">
+                      {renderPaymentMethods()}
                     </div>
 
                     {addresses.length > 0 && (
@@ -319,8 +464,10 @@ const CartPage = () => {
                   </div>
                 </div>
 
-                {/* for smart phone */}
+                {/* For smart phone */}
                 <div className="md:hidden bottom-0 w-full bg-shop_light_bg pt-2 mt-1">
+                  {renderPaymentMethods()}
+
                   {addresses && (
                     <div
                       className="border border-shop_light_blue/20 bg-shop_light_bg rounded-lg shadow-md 
@@ -414,8 +561,13 @@ const CartPage = () => {
                       font-semibold tracking-wider 
                       hover:scale-105 mt-1"
                         onClick={handleCheckout}
+                        disabled={loading}
                       >
-                        {loading ? "Loading..." : "Proceed to Checkout"}
+                        {loading
+                          ? "Processing Test Payment..."
+                          : paymentMethod === "cod"
+                            ? "Place Order (Cash on Delivery)"
+                            : "⚡ Complete Order (Demo Mode)"}
                       </Button>
                     </div>
                   </div>
