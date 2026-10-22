@@ -117,6 +117,53 @@ const LoginPage = () => {
                 <ArrowRight className="w-4 h-4 ml-1.5" />
               </Button>
             </form>
+
+            {/* Quick Demo Credentials for Clients & Employers */}
+            <div className="mt-5 pt-4 border-t border-slate-100">
+              <div className="flex items-center justify-between mb-2.5">
+                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                  ⚡ 1-Click Demo Login (Employer / Client)
+                </span>
+                <span className="text-[10px] bg-emerald-50 text-emerald-700 font-semibold px-2 py-0.5 rounded-full border border-emerald-200">
+                  Ready to test
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEmail("admin@ecommerce.com");
+                    setPassword("password123");
+                    toast.success("SuperAdmin credentials loaded!");
+                  }}
+                  className="p-2.5 rounded-xl border border-indigo-100 bg-indigo-50/60 hover:bg-indigo-100/70 text-left transition-all group"
+                >
+                  <p className="text-xs font-bold text-indigo-900 group-hover:text-indigo-950 flex items-center justify-between">
+                    <span>👑 Admin</span>
+                    <span className="text-[10px] text-indigo-500 font-normal">Click</span>
+                  </p>
+                  <p className="text-[11px] text-indigo-700 font-mono mt-0.5 truncate">admin@ecommerce.com</p>
+                  <p className="text-[10px] text-indigo-500 font-mono">pass: password123</p>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEmail("test@example.com");
+                    setPassword("password123");
+                    toast.success("Customer credentials loaded!");
+                  }}
+                  className="p-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-left transition-all group"
+                >
+                  <p className="text-xs font-bold text-slate-900 group-hover:text-black flex items-center justify-between">
+                    <span>🛍️ Customer</span>
+                    <span className="text-[10px] text-slate-500 font-normal">Click</span>
+                  </p>
+                  <p className="text-[11px] text-slate-700 font-mono mt-0.5 truncate">test@example.com</p>
+                  <p className="text-[10px] text-slate-500 font-mono">pass: password123</p>
+                </button>
+              </div>
+            </div>
           </CardContent>
           <CardFooter className="flex flex-col gap-2 pt-2 text-center text-xs text-slate-500 border-t border-slate-100">
             <div>
