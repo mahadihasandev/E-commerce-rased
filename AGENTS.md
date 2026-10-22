@@ -14,6 +14,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - **Framework**: Next.js 16 (Turbopack, App Router, React 19 Server Components)
 - **Deployment Platform**: Vercel
 - **Database**: Neon PostgreSQL (via Vercel Storage)
+- **Backend API URL**: https://php-ecommerce-backend-rased.vercel.app/api
 
 ## API & Fetching Best Practices
 - **Resilient Timeout**: In `lib/api.ts`, `fetchAPI` uses a 25-second abort controller to withstand backend cold-starts without failing early.
